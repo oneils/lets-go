@@ -1,0 +1,15 @@
+services:
+
+  snippetboxDB:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_ROOT_USER: root
+      MARIADB_USER: snippetbox
+      MARIADB_PASSWORD: snippetbox
+      MARIADB_DATABASE: snippetbox
+    ports:
+      - 3306:3306
+    expose:
+      - 3306:3306
