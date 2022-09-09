@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/oneils/lets-go/internal/models"
@@ -13,9 +14,10 @@ import (
 
 // application holds the application-wide dependencies for the web application.
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	snippets *models.SnippetModel
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	snippets      *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
@@ -39,10 +41,16 @@ func main() {
 
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		snippets: &models.SnippetModel{DB: db},
+		errorLog:      errorLog,
+		infoLog:       infoLog,
+		snippets:      &models.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	srv := &http.Server{
