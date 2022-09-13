@@ -10,6 +10,10 @@ import (
 	"strconv"
 )
 
+const (
+	sessionKey = "authenticatedUserID"
+)
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	snippets, err := app.snippets.Latest()
 	if err != nil {
@@ -205,10 +209,20 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.sessionManger.Put(r.Context(), "authenticatedUserId", id)
+	app.sessionManger.Put(r.Context(), sessionKey, id)
 	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
 }
 
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Logout the user...")
+	err := app.sessionManger.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.sessionManger.Remove(r.Context(), sessionKey)
+
+	app.sessionManger.Put(r.Context(), "flash", "You've been logged out successfully!")
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
