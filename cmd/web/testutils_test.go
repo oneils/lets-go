@@ -2,21 +2,43 @@ package main
 
 import (
 	"bytes"
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
+	"github.com/oneils/lets-go/internal/models/mocks"
 	"io"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"os"
 	"testing"
+	"time"
 )
 
 // Create a newTestApplication helper which returns an instance of our
 // application struct containing mocked dependencies.
 func newTestApplication(t *testing.T) *application {
+
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	decoder := form.NewDecoder()
+
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
 	// create app with logger, because logRequest and recoverPanic use loggers.
 	return &application{
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog:  log.New(io.Discard, "", 0),
+		errorLog:      log.New(os.Stderr, "", 0),
+		infoLog:       log.New(io.Discard, "", 0),
+		snippets:      &mocks.SnippetModel{},
+		users:         &mocks.UserModel{},
+		templateCache: templateCache,
+		formDecoder:   decoder,
+		sessionManger: sessionManager,
 	}
 }
 

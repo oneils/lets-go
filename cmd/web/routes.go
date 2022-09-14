@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
+	"github.com/oneils/lets-go/ui"
 	"net/http"
 )
 
@@ -13,8 +14,8 @@ func (app *application) routes() http.Handler {
 		app.notFoundError(w)
 	})
 
-	fileServer := http.FileServer(http.Dir("./ui/static"))
-	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
+	fileServer := http.FileServer(http.FS(ui.Files))
+	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
 	router.HandlerFunc(http.MethodGet, "/ping", ping)
 
